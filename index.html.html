@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeHub — Classifieds Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#2B6CB0; --brand-dark:#1A365D; --navy:#14304F;
+  --bg:#EEF3F8; --surface:#FFFFFF; --line:#E1E8F0;
+  --ink:#1E2A38; --muted:#64748B; --amber:#B45309; --amber-bg:#FEF3C7;
+  --green:#047857; --green-bg:#D1FAE5; --radius:16px;
+  --font-display:'Outfit',system-ui,sans-serif; --font-body:'Inter',system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#33475B;font-family:var(--font-body);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:24px}
+.phone{width:392px;max-width:100%;height:826px;max-height:96vh;background:var(--bg);border-radius:38px;overflow:hidden;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.45),0 0 0 10px #0F1B28,0 0 0 12px #2C3E52;display:flex;flex-direction:column}
+@media(max-width:480px){body{padding:0}.phone{width:100%;height:100vh;max-height:none;border-radius:0;box-shadow:none}}
+.statusbar{height:34px;display:flex;justify-content:space-between;align-items:center;padding:0 22px;font-size:13px;font-weight:600;color:var(--navy);flex-shrink:0;font-family:var(--font-display)}
+.statusbar .icons{letter-spacing:2px;font-size:11px}
+.screen{flex:1;overflow-y:auto;display:none;padding-bottom:86px}
+.screen.active{display:block}
+.screen::-webkit-scrollbar{width:0}
+
+/* ---------- header ---------- */
+.apphead{padding:8px 18px 14px}
+.apphead .row{display:flex;justify-content:space-between;align-items:center}
+.logo{font-family:var(--font-display);font-weight:800;font-size:22px;color:var(--brand);letter-spacing:-.5px}
+.logo span{color:var(--navy)}
+.loc{font-size:12px;color:var(--muted);font-weight:500}
+.loc b{color:var(--navy)}
+.searchbar{margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;display:flex;align-items:center;padding:11px 14px;gap:9px;color:var(--muted);font-size:14px}
+.searchbar input{border:none;outline:none;flex:1;font-size:14px;font-family:var(--font-body);background:transparent;color:var(--ink)}
+
+/* ---------- chips ---------- */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 18px 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;padding:8px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:13px;font-weight:600;color:var(--navy);cursor:pointer;font-family:var(--font-display)}
+.chip.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+/* ---------- sections & cards ---------- */
+.sect{padding:16px 18px 4px;display:flex;justify-content:space-between;align-items:baseline}
+.sect h2{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--navy)}
+.sect a{font-size:12px;color:var(--brand);font-weight:600;text-decoration:none}
+.hscroll{display:flex;gap:12px;overflow-x:auto;padding:10px 18px 4px;scrollbar-width:none}
+.hscroll::-webkit-scrollbar{display:none}
+.fcard{flex-shrink:0;width:150px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--line);overflow:hidden;cursor:pointer}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:10px 18px}
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--line);overflow:hidden;cursor:pointer;position:relative;transition:transform .12s}
+.card:active{transform:scale(.97)}
+.thumb{height:104px;display:flex;align-items:center;justify-content:center;font-size:44px;position:relative;overflow:hidden}
+.thumb svg{height:86%;width:auto;filter:drop-shadow(0 4px 6px rgba(20,48,79,.18))}
+.fcard .thumb{height:96px;font-size:40px}
+.dthumb svg{height:78%;width:auto;filter:drop-shadow(0 8px 14px rgba(20,48,79,.22))}
+.mitem .mthumb svg{height:72%;width:auto}
+.fav{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;border:none}
+.badge-own{position:absolute;top:8px;left:8px;background:var(--green-bg);color:var(--green);font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px}
+.cbody{padding:10px 12px 12px}
+.price{font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--amber);background:var(--amber-bg);display:inline-block;padding:2px 8px;border-radius:8px;font-variant-numeric:tabular-nums}
+.ctitle{font-size:13px;font-weight:600;color:var(--ink);margin-top:6px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cmeta{font-size:11px;color:var(--muted);margin-top:6px}
+
+/* ---------- buttons & forms ---------- */
+.btn{display:block;width:100%;padding:14px;border:none;border-radius:14px;background:var(--brand);color:#fff;font-size:15px;font-weight:700;font-family:var(--font-display);cursor:pointer}
+.btn:active{background:var(--brand-dark)}
+.btn.ghost{background:var(--surface);color:var(--brand);border:1.5px solid var(--brand)}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--navy);margin-bottom:6px}
+.field input,.field textarea,.field select{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:12px;font-size:14px;font-family:var(--font-body);background:var(--surface);color:var(--ink);outline:none}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--brand)}
+.field .hint{font-size:11px;color:var(--muted);margin-top:4px}
+.photorow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.photoslot{aspect-ratio:1;border:1.5px dashed #B9C7D6;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--muted);cursor:pointer;background:var(--surface)}
+.photoslot.filled{border-style:solid;border-color:var(--brand);font-size:30px}
+.toggle{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 13px}
+.toggle .tlabel{font-size:14px;font-weight:600;color:var(--ink)}
+.switch{width:46px;height:26px;border-radius:999px;background:#CBD5E1;position:relative;cursor:pointer;transition:.2s;border:none}
+.switch::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
+.switch.on{background:var(--green)}
+.switch.on::after{left:23px}
+
+/* ---------- detail ---------- */
+.backbar{display:flex;align-items:center;gap:10px;padding:10px 18px}
+.backbtn{width:36px;height:36px;border-radius:50%;background:var(--surface);border:1px solid var(--line);font-size:16px;cursor:pointer;color:var(--navy)}
+.backbar h3{font-family:var(--font-display);font-size:16px;color:var(--navy)}
+.dthumb{height:220px;margin:4px 18px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:90px}
+.dbody{padding:16px 18px}
+.dprice{font-family:var(--font-display);font-size:26px;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums}
+.dneg{font-size:11px;font-weight:700;color:var(--green);background:var(--green-bg);padding:3px 9px;border-radius:999px;vertical-align:middle;margin-left:8px}
+.dtitle{font-size:17px;font-weight:600;color:var(--ink);margin-top:6px}
+.dmeta{font-size:12px;color:var(--muted);margin-top:6px}
+.dsec{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--navy);margin:18px 0 6px}
+.ddesc{font-size:14px;color:#3D4B5C;line-height:1.6}
+.seller{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:8px}
+.avatar{width:42px;height:42px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-family:var(--font-display);flex-shrink:0}
+.sname{font-size:14px;font-weight:600;color:var(--ink)}
+.srate{font-size:11px;color:var(--muted)}
+.actrow{display:flex;gap:10px;padding:14px 18px 6px}
+
+/* ---------- chat ---------- */
+.convo{display:flex;gap:12px;padding:13px 18px;border-bottom:1px solid var(--line);cursor:pointer;background:var(--surface)}
+.convo .cinfo{flex:1;min-width:0}
+.convo .cname{font-size:14px;font-weight:600;color:var(--ink)}
+.convo .clast{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+.convo .ctime{font-size:11px;color:var(--muted)}
+.unread{background:var(--brand);color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px}
+.thread{display:flex;flex-direction:column;height:100%}
+.msgs{flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:10px}
+.bubble{max-width:76%;padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.45}
+.bubble.me{align-self:flex-end;background:var(--brand);color:#fff;border-bottom-right-radius:5px}
+.bubble.them{align-self:flex-start;background:var(--surface);border:1px solid var(--line);color:var(--ink);border-bottom-left-radius:5px}
+.bubble.offer{align-self:flex-end;background:var(--amber-bg);border:1.5px solid #F0C36D;color:var(--amber);font-weight:700;font-family:var(--font-display)}
+.composer{display:flex;gap:8px;padding:10px 14px 14px;background:var(--bg)}
+.composer input{flex:1;padding:12px 14px;border:1px solid var(--line);border-radius:999px;font-size:14px;outline:none;font-family:var(--font-body)}
+.composer button{width:44px;height:44px;border-radius:50%;border:none;background:var(--brand);color:#fff;font-size:17px;cursor:pointer}
+
+/* ---------- account ---------- */
+.prof{display:flex;align-items:center;gap:14px;padding:18px}
+.prof .avatar{width:58px;height:58px;font-size:20px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 18px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.stat b{font-family:var(--font-display);font-size:18px;color:var(--navy);display:block}
+.stat span{font-size:11px;color:var(--muted)}
+.mlist{padding:8px 18px}
+.mitem{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px;margin-top:10px}
+.mitem .mthumb{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.mitem .minfo{flex:1;min-width:0}
+.mitem .mt{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mitem .mp{font-size:12px;color:var(--amber);font-weight:700;margin-top:2px}
+.pill{font-size:10px;font-weight:700;padding:4px 9px;border-radius:999px}
+.pill.live{background:var(--green-bg);color:var(--green)}
+.pill.rev{background:#FEF3C7;color:var(--amber)}
+
+/* ---------- filters ---------- */
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 18px 2px}
+.filters select,.filters input{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-size:13px;background:var(--surface);font-family:var(--font-body);color:var(--ink);outline:none}
+.empty{text-align:center;padding:50px 30px;color:var(--muted)}
+.empty .big{font-size:44px;margin-bottom:10px}
+.empty h3{font-family:var(--font-display);color:var(--navy);font-size:16px;margin-bottom:6px}
+.empty p{font-size:13px;line-height:1.5}
+
+/* ---------- nav ---------- */
+.nav{position:absolute;bottom:0;left:0;right:0;height:74px;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;padding-bottom:8px;z-index:10}
+.nitem{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--muted);cursor:pointer;border:none;background:none;font-family:var(--font-display);width:60px}
+.nitem .nic{font-size:21px}
+.nitem.on{color:var(--brand)}
+.sellbtn{width:54px;height:54px;border-radius:50%;background:var(--brand);color:#fff;font-size:26px;border:none;cursor:pointer;margin-top:-26px;box-shadow:0 6px 16px rgba(43,108,176,.4);font-weight:300}
+.toast{position:absolute;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:11px 20px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;transition:.25s;pointer-events:none;z-index:20;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.success{text-align:center;padding:70px 34px}
+.success .big{font-size:64px}
+.success h2{font-family:var(--font-display);color:var(--navy);margin:14px 0 8px}
+.success p{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:26px}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="statusbar"><span>9:41</span><span style="font-family:var(--font-display);font-weight:800;color:var(--brand);font-size:12px">TradeHub</span><span class="icons">▂▄▆ ⏻ ▮</span></div>
+
+  <!-- HOME -->
+  <div class="screen active" id="scr-home">
+    <div class="apphead">
+      <div class="row">
+        <div class="logo">Trade<span>Hub</span></div>
+        <div class="loc">📍 <b>Lahore</b> · 15 km</div>
+      </div>
+      <div class="searchbar" onclick="goTab('search')">🔍 <span>Search phones, bikes, furniture…</span></div>
+    </div>
+    <div class="chips" id="homechips"></div>
+    <div class="sect"><h2>Featured near you</h2><a href="#" onclick="goTab('search');return false">See all</a></div>
+    <div class="hscroll" id="featured"></div>
+    <div class="sect"><h2>Fresh recommendations</h2></div>
+    <div class="grid" id="homegrid"></div>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="screen" id="scr-search">
+    <div class="apphead">
+      <div class="searchbar">🔍 <input id="q" placeholder="Search all listings…" oninput="renderSearch()"></div>
+    </div>
+    <div class="filters">
+      <select id="fcat" onchange="renderSearch()"><option value="">All categories</option></select>
+      <select id="fcond" onchange="renderSearch()"><option value="">Any condition</option><option>New</option><option>Used</option></select>
+      <input id="fmin" type="number" placeholder="Min price (Rs)" oninput="renderSearch()">
+      <input id="fmax" type="number" placeholder="Max price (Rs)" oninput="renderSearch()">
+    </div>
+    <div class="filters" style="grid-template-columns:1fr">
+      <select id="fsort" onchange="renderSearch()">
+        <option value="new">Sort: Newest first</option>
+        <option value="lo">Sort: Price low to high</option>
+        <option value="hi">Sort: Price high to low</option>
+      </select>
+    </div>
+    <div class="grid" id="results"></div>
+    <div class="empty" id="noresults" style="display:none">
+      <div class="big">🔎</div><h3>No listings match</h3><p>Try removing a filter or searching a broader term.</p>
+    </div>
+  </div>
+
+  <!-- SELL -->
+  <div class="screen" id="scr-sell">
+    <div class="backbar"><h3 style="padding:6px 0">Post a new listing</h3></div>
+    <div style="padding:0 18px">
+      <div class="field"><label>Photos (first photo = cover)</label>
+        <div class="photorow" id="photos"></div>
+        <div class="hint">Tip: listings with 5+ photos get up to 3× more views.</div>
+      </div>
+      <div class="field"><label>Category</label>
+        <select id="scat"><option value="">Select a category…</option></select>
+      </div>
+      <div class="field"><label>Title</label>
+        <input id="stitle" maxlength="70" placeholder="e.g., Samsung Galaxy S23, 256 GB" oninput="tcount()">
+        <div class="hint"><span id="tc">0</span>/70 characters — include brand, model & key detail</div>
+      </div>
+      <div class="field"><label>Description</label>
+        <textarea id="sdesc" rows="4" placeholder="Condition, age, reason for selling, what's included…"></textarea>
+      </div>
+      <div class="field"><label>Price (PKR)</label>
+        <input id="sprice" type="number" placeholder="e.g., 185000">
+      </div>
+      <div class="field">
+        <div class="toggle"><span class="tlabel">Negotiable</span><button class="switch on" id="sneg" onclick="this.classList.toggle('on')"></button></div>
+      </div>
+      <div class="field"><label>Location</label>
+        <select id="sloc"><option>Johar Town, Lahore</option><option>DHA Phase 5, Lahore</option><option>Gulberg III, Lahore</option><option>Model Town, Lahore</option></select>
+      </div>
+      <button class="btn" onclick="postAd()">Post now</button>
+      <p style="font-size:11px;color:var(--muted);text-align:center;margin:10px 0 20px">Your listing goes live after a quick automated review — usually within 5 minutes.</p>
+    </div>
+  </div>
+
+  <!-- SELL SUCCESS -->
+  <div class="screen" id="scr-success">
+    <div class="success">
+      <div class="big">🎉</div>
+      <h2>Your ad is live!</h2>
+      <p>It passed review and is now visible to buyers near you. You'll get a chat notification as soon as someone is interested.</p>
+      <button class="btn" onclick="goTab('home')">Back to Home</button>
+      <div style="height:10px"></div>
+      <button class="btn ghost" onclick="goTab('account')">View my listings</button>
+    </div>
+  </div>
+
+  <!-- DETAIL -->
+  <div class="screen" id="scr-detail"></div>
+
+  <!-- CHATS LIST -->
+  <div class="screen" id="scr-chats">
+    <div class="apphead"><div class="row"><div class="logo" style="font-size:19px">Chats</div></div></div>
+    <div id="convos"></div>
+  </div>
+
+  <!-- CHAT THREAD -->
+  <div class="screen" id="scr-thread" style="padding-bottom:0">
+    <div class="thread" style="height:100%">
+      <div class="backbar" style="background:var(--surface);border-bottom:1px solid var(--line)">
+        <button class="backbtn" onclick="goTab('chats')">‹</button>
+        <div><h3 id="th-name"></h3><div style="font-size:11px;color:var(--green);font-weight:600">● Online</div></div>
+      </div>
+      <div class="msgs" id="msgs"></div>
+      <div class="composer" style="padding-bottom:88px">
+        <input id="msginput" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendMsg()">
+        <button onclick="sendMsg()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACCOUNT -->
+  <div class="screen" id="scr-account">
+    <div class="prof">
+      <div class="avatar">IA</div>
+      <div><div style="font-family:var(--font-display);font-weight:700;font-size:17px;color:var(--navy)">Israr Ahmed</div>
+      <div style="font-size:12px;color:var(--muted)">⭐ 4.9 seller rating · Verified ✓</div></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="st-live">0</b><span>Active ads</span></div>
+      <div class="stat"><b>12</b><span>Items sold</span></div>
+      <div class="stat"><b>340</b><span>Profile views</span></div>
+    </div>
+    <div class="sect"><h2>My listings</h2></div>
+    <div class="mlist" id="mylistings"></div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav">
+    <button class="nitem on" data-tab="home" onclick="goTab('home')"><span class="nic">🏠</span>Home</button>
+    <button class="nitem" data-tab="search" onclick="goTab('search')"><span class="nic">🔍</span>Search</button>
+    <button class="sellbtn" onclick="goTab('sell')">+</button>
+    <button class="nitem" data-tab="chats" onclick="goTab('chats')"><span class="nic">💬</span>Chats</button>
+    <button class="nitem" data-tab="account" onclick="goTab('account')"><span class="nic">👤</span>Account</button>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* ---- product illustrations (original vector art) ---- */
+const PICS={
+phone:`<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
+<defs><linearGradient id="scr1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3B82F6"/><stop offset="1" stop-color="#0EA5E9"/></linearGradient></defs>
+<rect x="112" y="14" width="58" height="112" rx="12" fill="#1F2937"/>
+<rect x="116" y="18" width="50" height="104" rx="9" fill="#111827"/>
+<circle cx="128" cy="32" r="6" fill="#374151"/><circle cx="128" cy="32" r="3.4" fill="#0B1220"/>
+<circle cx="128" cy="48" r="6" fill="#374151"/><circle cx="128" cy="48" r="3.4" fill="#0B1220"/>
+<circle cx="128" cy="64" r="6" fill="#374151"/><circle cx="128" cy="64" r="3.4" fill="#0B1220"/>
+<rect x="34" y="10" width="64" height="120" rx="13" fill="#0F172A"/>
+<rect x="37.5" y="13.5" width="57" height="113" rx="10" fill="url(#scr1)"/>
+<circle cx="66" cy="21" r="2.6" fill="#0F172A"/>
+<rect x="45" y="96" width="42" height="7" rx="3.5" fill="#FFFFFF" opacity=".85"/>
+<rect x="45" y="108" width="28" height="5" rx="2.5" fill="#FFFFFF" opacity=".55"/>
+<circle cx="80" cy="40" r="14" fill="#FFFFFF" opacity=".25"/></svg>`,
+iph:`<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
+<defs><linearGradient id="scr2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#60A5FA"/><stop offset="1" stop-color="#1D4ED8"/></linearGradient></defs>
+<rect x="118" y="16" width="56" height="110" rx="14" fill="#2563EB"/>
+<rect x="122" y="20" width="48" height="102" rx="11" fill="#1E40AF"/>
+<rect x="128" y="28" width="22" height="22" rx="7" fill="#0F172A"/>
+<circle cx="134" cy="34" r="3.2" fill="#93C5FD"/><circle cx="144" cy="44" r="3.2" fill="#93C5FD"/>
+<rect x="30" y="12" width="66" height="118" rx="15" fill="#0F172A"/>
+<rect x="34" y="16" width="58" height="110" rx="11" fill="url(#scr2)"/>
+<rect x="49" y="16" width="28" height="9" rx="4.5" fill="#0F172A"/>
+<rect x="42" y="100" width="42" height="6" rx="3" fill="#fff" opacity=".8"/>
+<circle cx="78" cy="46" r="15" fill="#fff" opacity=".22"/></svg>`,
+bike:`<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
+<circle cx="48" cy="102" r="26" fill="#1F2937"/><circle cx="48" cy="102" r="17" fill="#E5E7EB"/><circle cx="48" cy="102" r="4" fill="#374151"/>
+<circle cx="156" cy="102" r="26" fill="#1F2937"/><circle cx="156" cy="102" r="17" fill="#E5E7EB"/><circle cx="156" cy="102" r="4" fill="#374151"/>
+<path d="M48 102 L86 62 L128 62 L156 102" stroke="#374151" stroke-width="6" fill="none" stroke-linecap="round"/>
+<path d="M48 102 L96 100 L128 62" stroke="#374151" stroke-width="6" fill="none" stroke-linecap="round"/>
+<path d="M78 64 Q98 44 126 58 L122 72 Q100 62 86 70 Z" fill="#DC2626"/>
+<rect x="118" y="48" width="34" height="12" rx="6" fill="#111827"/>
+<path d="M148 58 L164 40" stroke="#374151" stroke-width="5" stroke-linecap="round"/>
+<rect x="158" y="34" width="14" height="6" rx="3" fill="#111827"/>
+<path d="M96 100 L150 108" stroke="#9CA3AF" stroke-width="7" stroke-linecap="round"/>
+<circle cx="168" cy="46" r="5" fill="#FBBF24"/></svg>`,
+laptop:`<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
+<defs><linearGradient id="lap" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#38BDF8"/><stop offset="1" stop-color="#6366F1"/></linearGradient></defs>
+<rect x="52" y="18" width="96" height="66" rx="6" fill="#1F2937"/>
+<rect x="57" y="23" width="86" height="56" rx="3" fill="url(#lap)"/>
+<circle cx="100" cy="21" r="1.6" fill="#6B7280"/>
+<rect x="66" y="60" width="40" height="5" rx="2.5" fill="#fff" opacity=".8"/>
+<rect x="66" y="69" width="26" height="4" rx="2" fill="#fff" opacity=".5"/>
+<path d="M38 96 L52 84 H148 L162 96 Z" fill="#374151"/>
+<path d="M30 96 H170 L162 106 H38 Z" fill="#4B5563"/>
+<rect x="86" y="97" width="28" height="5" rx="2.5" fill="#1F2937"/></svg>`,
+sofa:`<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
+<rect x="30" y="42" width="140" height="44" rx="12" fill="#475569"/>
+<rect x="20" y="66" width="26" height="38" rx="10" fill="#334155"/>
+<rect x="154" y="66" width="26" height="38" rx="10" fill="#334155"/>
+<rect x="30" y="80" width="140" height="26" rx="8" fill="#64748B"/>
+<rect x="38" y="52" width="40" height="26" rx="7" fill="#94A3B8"/>
+<rect x="82" y="52" width="40" height="26" rx="7" fill="#94A3B8"/>
+<rect x="126" y="52" width="40" height="26" rx="7" fill="#94A3B8"/>
+<rect x="34" y="106" width="8" height="14" rx="2" fill="#92400E"/>
+<rect x="158" y="106" width="8" height="14" rx="2" fill="#92400E"/>
+<rect x="72" y="106" width="8" height="14" rx="2" fill="#92400E"/>
+<rect x="122" y="106" width="8" height="14" rx="2" fill="#92400E"/></svg>`,
+shoe:`<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
+<path d="M34 96 Q34 62 58 50 L74 42 Q80 38 86 44 L120 74 Q150 84 166 88 Q176 91 176 100 L176 104 H34 Z" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="2"/>
+<path d="M34 104 H176 Q178 116 164 116 H48 Q34 116 34 104 Z" fill="#DC2626"/>
+<path d="M58 50 Q78 66 108 72" stroke="#DC2626" stroke-width="7" fill="none" stroke-linecap="round"/>
+<path d="M70 48 L92 66 M78 44 L100 62" stroke="#94A3B8" stroke-width="3" stroke-linecap="round"/>
+<circle cx="64" cy="58" r="3" fill="#475569"/><circle cx="74" cy="66" r="3" fill="#475569"/></svg>`,
+ps5:`<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
+<path d="M70 16 Q86 10 86 26 L86 114 Q86 126 74 124 L66 122 Q58 120 58 108 L62 26 Q62 20 70 16 Z" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="2"/>
+<path d="M92 20 Q104 16 106 28 L110 108 Q111 120 100 120 L94 119 Q88 118 88 108 L88 28 Q88 22 92 20 Z" fill="#E2E8F0" stroke="#CBD5E1" stroke-width="2"/>
+<rect x="72" y="60" width="26" height="4" rx="2" fill="#0EA5E9" opacity=".7"/>
+<path d="M120 78 Q132 70 146 74 Q166 74 172 88 Q178 104 168 110 Q160 114 154 104 Q146 108 138 104 Q130 114 122 108 Q114 100 120 78 Z" fill="#1F2937"/>
+<circle cx="134" cy="86" r="5" fill="#374151"/><circle cx="160" cy="86" r="5" fill="#374151"/>
+<circle cx="160" cy="86" r="2" fill="#38BDF8"/><circle cx="134" cy="86" r="2" fill="#F87171"/></svg>`,
+desk:`<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
+<rect x="28" y="52" width="144" height="12" rx="4" fill="#92400E"/>
+<rect x="34" y="64" width="54" height="22" rx="3" fill="#B45309"/>
+<rect x="52" y="72" width="18" height="4" rx="2" fill="#78350F"/>
+<rect x="36" y="64" width="8" height="60" fill="#78350F"/>
+<rect x="156" y="64" width="8" height="60" fill="#78350F"/>
+<rect x="104" y="24" width="46" height="10" rx="5" fill="#334155"/>
+<rect x="122" y="34" width="8" height="30" fill="#475569"/>
+<rect x="102" y="88" width="46" height="10" rx="5" fill="#334155"/>
+<rect x="108" y="98" width="6" height="26" fill="#475569"/><rect x="136" y="98" width="6" height="26" fill="#475569"/></svg>`,
+cam:`<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
+<rect x="40" y="44" width="120" height="70" rx="10" fill="#1F2937"/>
+<rect x="78" y="32" width="36" height="16" rx="4" fill="#111827"/>
+<circle cx="100" cy="79" r="27" fill="#0F172A"/><circle cx="100" cy="79" r="21" fill="#334155"/>
+<circle cx="100" cy="79" r="13" fill="#0EA5E9" opacity=".8"/><circle cx="94" cy="73" r="4" fill="#BAE6FD"/>
+<rect x="46" y="52" width="20" height="34" rx="5" fill="#374151"/>
+<rect x="136" y="52" width="14" height="8" rx="3" fill="#F59E0B"/></svg>`,
+gchair:`<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
+<path d="M76 14 Q100 6 124 14 Q134 40 128 74 H72 Q66 40 76 14 Z" fill="#1F2937"/>
+<path d="M84 20 Q100 14 116 20 Q122 42 118 66 H82 Q78 42 84 20 Z" fill="#DC2626"/>
+<rect x="68" y="76" width="64" height="16" rx="8" fill="#111827"/>
+<rect x="94" y="92" width="12" height="20" fill="#374151"/>
+<path d="M100 112 L64 126 M100 112 L136 126 M100 112 L100 130" stroke="#374151" stroke-width="7" stroke-linecap="round"/>
+<circle cx="64" cy="128" r="5" fill="#111827"/><circle cx="136" cy="128" r="5" fill="#111827"/><circle cx="100" cy="132" r="5" fill="#111827"/></svg>`,
+house:`<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
+<path d="M100 22 L164 70 H36 Z" fill="#B45309"/>
+<rect x="48" y="70" width="104" height="52" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="2"/>
+<rect x="88" y="88" width="24" height="34" fill="#92400E"/>
+<rect x="58" y="80" width="20" height="18" fill="#7DD3FC"/><rect x="122" y="80" width="20" height="18" fill="#7DD3FC"/></svg>`,
+};
+const pic=k=>PICS[k]||PICS.phone;
+const CATS=[
+ {id:'mobiles',name:'Mobiles',emoji:'📱',pic:'phone'},
+ {id:'vehicles',name:'Vehicles',emoji:'🏍️',pic:'bike'},
+ {id:'electronics',name:'Electronics',emoji:'💻',pic:'laptop'},
+ {id:'furniture',name:'Furniture',emoji:'🛋️',pic:'sofa'},
+ {id:'fashion',name:'Fashion',emoji:'👟',pic:'shoe'},
+ {id:'property',name:'Property',emoji:'🏠',pic:'house'},
+];
+const G=['linear-gradient(135deg,#DBEAFE,#BFDBFE)','linear-gradient(135deg,#FEF3C7,#FDE68A)','linear-gradient(135deg,#D1FAE5,#A7F3D0)','linear-gradient(135deg,#EDE9FE,#DDD6FE)','linear-gradient(135deg,#FFE4E6,#FECDD3)','linear-gradient(135deg,#E0F2FE,#BAE6FD)'];
+let listings=[
+ {id:1,title:'Samsung Galaxy S23, 256 GB, Excellent Condition',price:185000,neg:true,cat:'mobiles',cond:'Used',loc:'Gulberg III, Lahore',time:'2 h ago',img:'phone',g:0,feat:true,seller:'Ahmed R.',desc:'10 months old, single owner. Battery health 96%. Complete box with original charger and case. Small scratch on frame, screen is flawless. Selling because I upgraded.'},
+ {id:2,title:'iPhone 13, 128 GB, PTA Approved, Blue',price:152000,neg:true,cat:'mobiles',cond:'Used',loc:'DHA Phase 5, Lahore',time:'5 h ago',img:'iph',g:5,feat:true,seller:'Sana K.',desc:'PTA approved, non-refurbished. Face ID and all features working perfectly. Comes with box and cable. No exchange, serious buyers only.'},
+ {id:3,title:'Honda CG 125, Model 2022, Total Genuine',price:238000,neg:false,cat:'vehicles',cond:'Used',time:'1 h ago',loc:'Johar Town, Lahore',img:'bike',g:1,feat:true,seller:'Bilal M.',desc:'First owner, complete file, total genuine. 14,500 km driven. New tyres fitted last month. Bike is in showroom condition — see it, you will like it.'},
+ {id:4,title:'HP EliteBook 840 G8, i5 11th Gen, 16 GB RAM',price:118000,neg:true,cat:'electronics',cond:'Used',time:'3 h ago',loc:'Model Town, Lahore',img:'laptop',g:2,feat:false,seller:'Usman T.',desc:'Imported machine, 512 GB NVMe SSD, backlit keyboard. Battery gives 5+ hours. Ideal for office work and students. Charger included.'},
+ {id:5,title:'7-Seater Sofa Set with Cushions, Like New',price:65000,neg:true,cat:'furniture',cond:'Used',time:'8 h ago',loc:'Johar Town, Lahore',img:'sofa',g:3,feat:false,seller:'Farah A.',desc:'Molty foam seats, premium fabric, hardly used in guest room. Moving abroad so must sell this week. Buyer arranges pickup.'},
+ {id:6,title:'Air Jordan 1 Mid, Size 42, Original',price:28500,neg:false,cat:'fashion',cond:'New',time:'1 d ago',loc:'DHA Phase 5, Lahore',img:'shoe',g:4,feat:false,seller:'Hamza S.',desc:'Brand new in box with receipt. Bought wrong size as a gift. 100% original — check and verify before buying.'},
+ {id:7,title:'PlayStation 5 Slim, 1 TB + 2 Controllers',price:168000,neg:true,cat:'electronics',cond:'Used',time:'4 h ago',loc:'Gulberg III, Lahore',img:'ps5',g:0,feat:true,seller:'Ali Z.',desc:'3 months warranty remaining. Includes 2 original DualSense controllers and 3 game discs. Perfect working condition, box available.'},
+ {id:8,title:'Study Table + Chair, Solid Sheesham Wood',price:18000,neg:true,cat:'furniture',cond:'Used',time:'2 d ago',loc:'Model Town, Lahore',img:'desk',g:1,feat:false,seller:'Nadia I.',desc:'Pure sheesham wood, polished last year. Very sturdy — table has one drawer with lock. Selling due to house shifting.'},
+];
+let favs=new Set(), myAds=[], activeChip='', curThread=null;
+let chats=[
+ {id:'c1',name:'Ahmed R.',item:'Samsung Galaxy S23',unread:2,time:'12:40',msgs:[
+   {who:'them',t:'Walaikum salam! Yes, the phone is still available.'},
+   {who:'me',t:'Great. Is the price final or negotiable?'},
+   {who:'them',t:'Slightly negotiable for a serious buyer. When can you meet?'},
+ ]},
+ {id:'c2',name:'Bilal M.',item:'Honda CG 125',unread:0,time:'Yesterday',msgs:[
+   {who:'me',t:'Is the bike file complete?'},
+   {who:'them',t:'Yes, complete file and computerized number plate.'},
+ ]},
+];
+
+const fmt=n=>'Rs '+Number(n).toLocaleString('en-PK');
+const $=id=>document.getElementById(id);
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2200)}
+
+function goTab(t){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $('scr-'+t).classList.add('active');
+  document.querySelectorAll('.nitem').forEach(n=>n.classList.toggle('on',n.dataset.tab===t));
+  if(t==='home')renderHome();
+  if(t==='search')renderSearch();
+  if(t==='chats')renderChats();
+  if(t==='account')renderAccount();
+}
+
+function cardHTML(l){
+  const own=l.own?'<span class="badge-own">Your ad</span>':'';
+  return `<div class="card" onclick="openDetail(${l.id})">
+    <div class="thumb" style="background:${G[l.g]}">${pic(l.img)}${own}
+      <button class="fav" onclick="event.stopPropagation();toggleFav(${l.id},this)">${favs.has(l.id)?'❤️':'🤍'}</button>
+    </div>
+    <div class="cbody"><span class="price">${fmt(l.price)}</span>
+      <div class="ctitle">${l.title}</div>
+      <div class="cmeta">📍 ${l.loc.split(',')[0]} · ${l.time}</div>
+    </div></div>`;
+}
+function toggleFav(id,btn){favs.has(id)?favs.delete(id):favs.add(id);btn.textContent=favs.has(id)?'❤️':'🤍';toast(favs.has(id)?'Saved to Favorites':'Removed from Favorites')}
+
+function renderHome(){
+  $('homechips').innerHTML=`<button class="chip ${activeChip===''?'on':''}" onclick="setChip('')">All</button>`+
+    CATS.map(c=>`<button class="chip ${activeChip===c.id?'on':''}" onclick="setChip('${c.id}')">${c.emoji} ${c.name}</button>`).join('');
+  const all=[...myAds,...listings];
+  $('featured').innerHTML=all.filter(l=>l.feat).map(l=>`
+    <div class="fcard" onclick="openDetail(${l.id})">
+      <div class="thumb" style="background:${G[l.g]}">${pic(l.img)}</div>
+      <div class="cbody"><span class="price">${fmt(l.price)}</span><div class="ctitle">${l.title}</div></div>
+    </div>`).join('');
+  const list=activeChip?all.filter(l=>l.cat===activeChip):all;
+  $('homegrid').innerHTML=list.map(cardHTML).join('');
+}
+function setChip(c){activeChip=c;renderHome()}
+
+function renderSearch(){
+  const q=$('q').value.toLowerCase(),cat=$('fcat').value,cond=$('fcond').value,
+        mn=+$('fmin').value||0,mx=+$('fmax').value||Infinity,sort=$('fsort').value;
+  let r=[...myAds,...listings].filter(l=>
+    (!q||l.title.toLowerCase().includes(q)||l.desc.toLowerCase().includes(q))&&
+    (!cat||l.cat===cat)&&(!cond||l.cond===cond)&&l.price>=mn&&l.price<=mx);
+  if(sort==='lo')r.sort((a,b)=>a.price-b.price);
+  if(sort==='hi')r.sort((a,b)=>b.price-a.price);
+  $('results').innerHTML=r.map(cardHTML).join('');
+  $('noresults').style.display=r.length?'none':'block';
+}
+
+function openDetail(id){
+  const l=[...myAds,...listings].find(x=>x.id===id);if(!l)return;
+  $('scr-detail').innerHTML=`
+    <div class="backbar"><button class="backbtn" onclick="goTab('home')">‹</button><h3>Listing details</h3></div>
+    <div class="dthumb" style="background:${G[l.g]}">${pic(l.img)}</div>
+    <div class="dbody">
+      <span class="dprice">${fmt(l.price)}</span>${l.neg?'<span class="dneg">NEGOTIABLE</span>':''}
+      <div class="dtitle">${l.title}</div>
+      <div class="dmeta">📍 ${l.loc} · Posted ${l.time} · Condition: ${l.cond}</div>
+      <div class="dsec">Description</div>
+      <div class="ddesc">${l.desc}</div>
+      <div class="dsec">Seller</div>
+      <div class="seller"><div class="avatar">${l.seller[0]}</div>
+        <div><div class="sname">${l.seller}</div><div class="srate">⭐ 4.8 · Member since 2023 · Verified ✓</div></div>
+      </div>
+    </div>
+    <div class="actrow">
+      <button class="btn ghost" onclick="makeOffer(${l.id})">Make an offer</button>
+      <button class="btn" onclick="chatSeller(${l.id})">Chat with seller</button>
+    </div>`;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $('scr-detail').classList.add('active');
+}
+
+function ensureChat(l){
+  let c=chats.find(c=>c.item===l.title.split(',')[0]&&c.name===l.seller);
+  if(!c){c={id:'c'+Date.now(),name:l.seller,item:l.title.split(',')[0],unread:0,time:'Now',msgs:[]};chats.unshift(c)}
+  return c;
+}
+function chatSeller(id){
+  const l=[...myAds,...listings].find(x=>x.id===id);
+  openThread(ensureChat(l).id);
+}
+function makeOffer(id){
+  const l=[...myAds,...listings].find(x=>x.id===id);
+  const v=prompt('Enter your offer for "'+l.title.split(',')[0]+'" (PKR):', Math.round(l.price*0.9));
+  if(!v||isNaN(v))return;
+  const c=ensureChat(l);
+  c.msgs.push({who:'offer',t:'💰 Offer sent: '+fmt(v)});
+  openThread(c.id);
+  setTimeout(()=>{c.msgs.push({who:'them',t:'Thanks for the offer! Let me think about it and get back to you shortly.'});if(curThread===c.id)renderMsgs(c)},1400);
+}
+
+function renderChats(){
+  $('convos').innerHTML=chats.map(c=>`
+    <div class="convo" onclick="openThread('${c.id}')">
+      <div class="avatar">${c.name[0]}</div>
+      <div class="cinfo"><div class="cname">${c.name} <span style="color:var(--muted);font-weight:400;font-size:12px">· ${c.item}</span></div>
+      <div class="clast">${c.msgs.length?c.msgs[c.msgs.length-1].t:'Say salam to start the conversation'}</div></div>
+      <div style="text-align:right"><div class="ctime">${c.time}</div>${c.unread?`<span class="unread">${c.unread}</span>`:''}</div>
+    </div>`).join('');
+}
+function openThread(id){
+  curThread=id;const c=chats.find(x=>x.id===id);c.unread=0;
+  $('th-name').textContent=c.name+' · '+c.item;
+  renderMsgs(c);
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $('scr-thread').classList.add('active');
+  document.querySelectorAll('.nitem').forEach(n=>n.classList.toggle('on',n.dataset.tab==='chats'));
+}
+function renderMsgs(c){
+  $('msgs').innerHTML=c.msgs.map(m=>`<div class="bubble ${m.who}">${m.t}</div>`).join('');
+  $('msgs').scrollTop=$('msgs').scrollHeight;
+}
+function sendMsg(){
+  const v=$('msginput').value.trim();if(!v||!curThread)return;
+  const c=chats.find(x=>x.id===curThread);
+  c.msgs.push({who:'me',t:v});$('msginput').value='';renderMsgs(c);
+  setTimeout(()=>{c.msgs.push({who:'them',t:'Got it 👍 I will reply in detail shortly.'});if(curThread===c.id)renderMsgs(c)},1500);
+}
+
+/* ---- sell ---- */
+let photoCount=0;
+function renderPhotos(){
+  let h='';
+  for(let i=0;i<4;i++)h+=`<div class="photoslot ${i<photoCount?'filled':''}" onclick="addPhoto()">${i<photoCount?'🖼️':'＋'}</div>`;
+  $('photos').innerHTML=h;
+}
+function addPhoto(){if(photoCount<4)photoCount++;renderPhotos();toast('Photo added ('+photoCount+'/10)')}
+function tcount(){$('tc').textContent=$('stitle').value.length}
+function postAd(){
+  const t=$('stitle').value.trim(),c=$('scat').value,p=+$('sprice').value,d=$('sdesc').value.trim();
+  if(!c)return toast('Please select a category');
+  if(t.length<10)return toast('Title is too short — add brand & model');
+  if(!p)return toast('Please enter a price');
+  if(d.length<20)return toast('Add a few more details to the description');
+  if(!photoCount)return toast('Add at least one photo');
+  const cat=CATS.find(x=>x.id===c);
+  myAds.unshift({id:Date.now(),title:t,price:p,neg:$('sneg').classList.contains('on'),cat:c,cond:'Used',
+    loc:$('sloc').value,time:'Just now',img:cat.pic,g:Math.floor(Math.random()*6),feat:false,own:true,
+    seller:'Israr Ahmed',desc:d});
+  photoCount=0;renderPhotos();$('stitle').value='';$('sdesc').value='';$('sprice').value='';$('scat').value='';tcount();
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $('scr-success').classList.add('active');
+}
+
+function renderAccount(){
+  $('st-live').textContent=myAds.length+2;
+  const mine=[...myAds,{id:901,title:'Canon EOS 1200D DSLR with 2 Lenses',price:72000,img:'cam',g:2,pill:'live'},{id:902,title:'Gaming Chair, Imported, Red/Black',price:24000,img:'gchair',g:4,pill:'rev'}];
+  $('mylistings').innerHTML=mine.map(l=>`
+    <div class="mitem"><div class="mthumb" style="background:${G[l.g??0]}">${pic(l.img)}</div>
+      <div class="minfo"><div class="mt">${l.title}</div><div class="mp">${fmt(l.price)}</div></div>
+      <span class="pill ${l.pill||'live'}">${(l.pill||'live')==='live'?'LIVE':'IN REVIEW'}</span>
+    </div>`).join('');
+}
+
+/* init */
+CATS.forEach(c=>{
+  $('fcat').innerHTML+=`<option value="${c.id}">${c.emoji} ${c.name}</option>`;
+  $('scat').innerHTML+=`<option value="${c.id}">${c.emoji} ${c.name}</option>`;
+});
+renderPhotos();renderHome();
+</script>
+</body>
+</html>
